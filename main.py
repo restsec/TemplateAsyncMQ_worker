@@ -1,10 +1,11 @@
 import pika as rmq
 import logging
+from mq.writer import write_message
 
 QUEUE_ADDR = 'localhost'
 NAME = 'workername'
 READQUEUE = 'todoq'
-WRITEQUEUE = 'resultq'
+WRITE_QUEUE = 'resultq'
 WRITE_RETRY = 3
 
 
@@ -27,39 +28,10 @@ channel = connection.channel()
 channel.queue_declare(queue=READQUEUE, durable=True)
 logging.info(' [*] Waiting for messages. To exit press CTRL+C')
 
-def writer(message, retry):
-
-  try:
-    connection = rmq.BlockingConnection(rmq.ConnectionParameters(host=QUEUE_ADDR))
-
-    channel = connection.channel()
-
-    channel.queue_declare(queue=WRITEQUEUE, durable=True)
-
-    channel.basic_publish(exchange='',
-                          routing_key=WRITEQUEUE,
-                          body=message,
-                          properties=rmq.BasicProperties(
-                            delivery_mode = 2, # make message persistent
-                          ))
-    logging.info(" [x] Sent %r" % message)
-    connection.close()
-
-  except Exception as err:
-    if retry <= 0:
-      logging.error('Failed publishing to Queue after %d attempts.' %WRITE_RETRY)
-      logging.critical(err)
-      return
-
-    logging.info('Failed publishing to Queue. Remaining attempts : %d' %retry)
-    writer(message, retry - 1)
-  
-  
-
 def callback(ch, method, properties, body):
   ### TODO Investigar qual a melhor prática neste caso: esperar a writer postar para mandar o ack, ou mandar antes de chamar a writer.
   logging.info(" [x] Received %r" % body)
-  writer(handler(body),WRITE_RETRY)
+  write_message(handler(body), QUEUE_ADDR, WRITE_QUEUE, WRITE_RETRY)
   ch.basic_ack(delivery_tag = method.delivery_tag)
   logging.info(" [x] Done")
 
