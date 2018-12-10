@@ -1,6 +1,7 @@
 import pika as rmq
 import logging
 from mq.writer import write_message
+import services
 
 QUEUE_ADDR = 'localhost'
 NAME = 'workername'
@@ -31,10 +32,14 @@ logging.info(' [*] Waiting for messages. To exit press CTRL+C')
 def callback(ch, method, properties, body):
   ### TODO Investigar qual a melhor prática neste caso: esperar a writer postar para mandar o ack, ou mandar antes de chamar a writer.
   logging.info(" [x] Received %r" % body)
-  write_message(handler(body), QUEUE_ADDR, WRITE_QUEUE, WRITE_RETRY)
+
+  ### IF posting to MQ: 
+  write_message(handler(body), QUEUE_ADDR, WRITE_QUEUE, WRITE_RETRY) # Returns true or false indicating the status of the message posting
+  ### IF posting to HTTP
+  services.request_and_retry(__get_code, handler(body) ,WRITE_RETRY) # Returns true or false indicating the status of the request
+
   ch.basic_ack(delivery_tag = method.delivery_tag)
   logging.info(" [x] Done")
-
 
 channel.basic_qos(prefetch_count=1)
 channel.basic_consume(callback,
