@@ -7,7 +7,7 @@ from time import sleep
 http_gateway = "http://localhost"
 
 #
-def request_and_retry(request, args, retry):
+def request_and_retry(request, args, retry=3):
     """
     write_message function will post a message to a queue using the AMQP 0-9-1 protocol.
 
