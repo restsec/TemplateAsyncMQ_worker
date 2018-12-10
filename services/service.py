@@ -30,18 +30,19 @@ def request_and_retry(request, args, retry=3):
         False: Operation Failed. In this case, logging.error and logging.critical messages will be produced, after n logging.info messages, n being the ammount of attempts.
 
     """
-    res = request(args)
-    if res != None:
+    res, err = request(args)
+    if err != None:
         if retry <= 0:
             logging.error('Failed http request after all attempts.' )
-            logging.critical(res)
-            return False
+            logging.critical(err)
+            return res, err
         logging.error('Failed http request. Remaining attempts : %d' %retry)
-        logging.error(res)
+        logging.error(err)
 
         sleep(1)
         return request_and_retry(request, args, retry - 1)
-    return True
+    return res, err
+
 
 # Eaxample get function
 def __get_code(args):
@@ -52,14 +53,14 @@ def __get_code(args):
         r.raise_for_status()
     except requests.exceptions.HTTPError as err:
         logging.error(f"Http Error:{err}")
-        return err
+        return None,err
     except requests.exceptions.ConnectionError as err:
         logging.error(f"Error Connecting: {err}")
-        return errc
+        return None,err
     except requests.exceptions.Timeout as err:
         logging.error(f"Timeout Error: {err}")
-        return errt
+        return None, err
     except requests.exceptions.RequestException as err:
         logging.error(f"Some Else {err}")
-        return err
-    return None
+        return None,err
+    return r.json(), None
