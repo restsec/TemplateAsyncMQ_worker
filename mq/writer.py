@@ -45,11 +45,11 @@ def write_message(message, QUEUE_ADDR, WRITE_QUEUE, retry):
 
   except Exception as err:
     if retry <= 0:
-      logging.error('Failed publishing to Queue after %d attempts.' %WRITE_RETRY)
+      logging.error('Failed publishing to Queue after all attempts.')
       logging.critical(err)
       return False
 
     logging.info('Failed publishing to Queue. Remaining attempts : %d' %retry)
     writer(message, QUEUE_ADDR, WRITE_QUEUE, retry - 1)
-    return True
+  return True
 
