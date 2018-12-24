@@ -50,6 +50,6 @@ def write_message(message, QUEUE_ADDR, WRITE_QUEUE, retry=3):
       return False
 
     logging.info('Failed publishing to Queue. Remaining attempts : %d' %retry)
-    writer(message, QUEUE_ADDR, WRITE_QUEUE, retry - 1)
+    write_message(message, QUEUE_ADDR, WRITE_QUEUE, retry - 1)
   return True
 
