@@ -2,6 +2,7 @@ import pika as rmq
 import logging
 from mq.writer import write_message
 import services
+import msgpack
 
 QUEUE_ADDR = 'localhost'
 NAME = 'workername'
@@ -13,8 +14,10 @@ WRITE_RETRY = 3
 def handler(body):
   #Do some stuff
   # If handler logic is too large, move it to another package
-  response = body
-  return response
+  message = msgpack.packb(body, use_bin_type=True)
+
+  return message
+
 
 
 #main block#
