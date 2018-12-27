@@ -36,7 +36,7 @@ def callback(ch, method, properties, body):
   ### IF posting to MQ: 
   write_message(handler(body), QUEUE_ADDR, WRITE_QUEUE, WRITE_RETRY) # Returns true or false indicating the status of the message posting
   ### IF posting to HTTP
-  services.request_and_retry(__get_code, handler(body) ,WRITE_RETRY) # Returns true or false indicating the status of the request
+  services.service.request_and_retry(services.service.__get_code, handler(body) ,WRITE_RETRY) # Returns true or false indicating the status of the request
 
   ch.basic_ack(delivery_tag = method.delivery_tag)
   logging.info(" [x] Done")
