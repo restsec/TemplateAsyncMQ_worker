@@ -30,17 +30,27 @@ def request_and_retry(request, args, retry=3):
         False: Operation Failed. In this case, logging.error and logging.critical messages will be produced, after n logging.info messages, n being the ammount of attempts.
 
     """
-    res, err = request(args)
-    if err != None:
-        if retry <= 0:
-            logging.error('Failed http request after all attempts.' )
-            logging.critical(err)
-            return res, err
-        logging.error('Failed http request. Remaining attempts : %d' %retry)
-        logging.error(err)
+    try:
+        res, err = request(args)
+        if err != 200:
+            if retry <= 0:
+                logging.error('Failed http request after all attempts.' )
+                logging.critical(err)
+                return res, err
 
-        sleep(1)
-        return request_and_retry(request, args, retry - 1)
+            logging.error('Failed http request. Remaining attempts : %d' %retry)
+            logging.error(err)
+
+            sleep(1)
+            return request_and_retry(request, args, retry - 1)
+    
+    except Exception as err:
+        if retry <= 0:
+            err = "Not able to execute request"
+            logging.critical(err)
+            return err, 500
+        logging.critical('Failed publishing to Queue. Remaining attempts : %d' %retry)
+        request_and_retry(requests, args, retry - 1)
     return res, err
 
 
