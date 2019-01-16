@@ -28,7 +28,6 @@ def write_message(message, QUEUE_ADDR, WRITE_QUEUE, retry=3):
         Exception: Operation Failed. In this case, logging.error and logging.critical messages will be produced, after n logging.info messages, n being the ammount of attempts.
 
     """
-    err = None
     try:
         connection = rmq.BlockingConnection(rmq.ConnectionParameters(host=QUEUE_ADDR))
 
@@ -52,6 +51,6 @@ def write_message(message, QUEUE_ADDR, WRITE_QUEUE, retry=3):
             return err
 
         logging.info('Failed publishing to Queue. Remaining attempts : %d' %retry)
-        write_message(message, QUEUE_ADDR, WRITE_QUEUE, retry - 1)
-    return err
+        return write_message(message, QUEUE_ADDR, WRITE_QUEUE, retry - 1)
+    return None
 
